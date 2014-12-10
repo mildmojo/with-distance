@@ -840,6 +840,10 @@ Prefab:
       propertyPath: rndVelocity.z
       value: .00999999978
       objectReference: {fileID: 0}
+    - target: {fileID: 1500000, guid: 88324f760c579473199bfbc4f1073097, type: 2}
+      propertyPath: worldVelocity.x
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 88324f760c579473199bfbc4f1073097, type: 2}
   m_RootGameObject: {fileID: 1179075019}
