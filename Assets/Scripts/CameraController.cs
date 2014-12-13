@@ -15,44 +15,38 @@ public class CameraController : MonoBehaviour {
   }
 
   void Update () {
-    // var oldBoardIdx = gameManager.BillboardIdx;
-    // var newBoardIdx = oldBoardIdx;
-
-    // if (Input.GetKeyDown(KeyCode.DownArrow)) {
-    //   newBoardIdx++;
-    // } else if (Input.GetKeyDown(KeyCode.UpArrow)) {
-    //   newBoardIdx--;
-    // }
-
-    // newBoardIdx = Mathf.Clamp(newBoardIdx, 0, gameManager.StoryCounts[gameManager.StoryIdx] - 1);
-    // if (newBoardIdx != oldBoardIdx) {
-    //   var oldBoard = gameManager.Billboards[oldBoardIdx];
-    //   LeanTween.move(oldBoard, oldBoard.transform.position - new Vector3(0, 900, 0), 0.75f);
-    //   var newBoard = gameManager.Billboards[newBoardIdx];
-    //   LeanTween.move(newBoard, new Vector3(0, 0, newBoard.transform.position.z), 0.5f);
-
-    //   cameraPos = new Vector3(0, 0, newBoard.transform.position.z - 350);
-    //   // var oldRects = gameManager.Billboards[oldBoardIdx].GetComponentsInChildren<Transform>().Select(tf => tf.gameObject).ToList();
-    //   // foreach (var rect in oldRects) {
-    //   //   LeanTween.alpha(rect, 0f, 1f);
-    //   // };
-
-    //   // var newRects = gameManager.Billboards[billboardIdx].GetComponentsInChildren<Transform>().Select(tf => tf.gameObject).ToList();
-    //   // foreach (var rect in newRects) {
-    //   //   LeanTween.alpha(rect, 1f, 1f);
-    //   // };
-    // }
     float distance;
 
     if (rangefinder.IsActive) {
       distance = rangefinder.distance_mm * -gameManager.ZSpacing / 50f;
     } else {
-      var billboard = gameManager.Billboards[gameManager.BillboardIdx];
-      var z = billboard.transform.position.z;
+      var card = gameManager.Cards[gameManager.CardIdx];
+      var z = card.transform.position.z;
       distance = z - gameManager.ZSpacing + gameManager.ZSpacing / 10f;
     }
-Debug.Log(distance);
+
     cameraPos = Vector3.forward * distance;
     transform.position = Vector3.Lerp(transform.position, cameraPos, Time.deltaTime * CameraSnappiness);
+  }
+
+  void OnTriggerEnter(Collider c) {
+    // Space goes from 500 to 10000us
+    // 5 cards, placed at 0 - 400 * N intervals
+    // 5 camera positions, at 0 - 400 * (N + 1) + 50
+    // Camera can waver +/- 50
+    // Cards at 2000us intervals
+    // 500: -350
+    // 2500: -750
+    // 4500: -1150
+    // 6500: -1550
+    // 8500: -1950
+    // rangefinder-controlled traversal space is N * 100, gaps between colliders
+    // On collider contact, snap to other side of collider
+
+    // rangefinder totalRangeR = maxR - minR
+    // intervalR = totalRangeR / cardCount
+    // rangeToWorld = intervalR / (ZSpacing - card.collider.bounds.size.z)
+    // worldDistR = (dist - minR - intervalR * cardNum) * rangeToWorld
+    // camerapos = cardpos - card.collider.bounds.size.z - worldDistR
   }
 }

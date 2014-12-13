@@ -9,46 +9,57 @@ public class GameManager : MonoBehaviour {
 
   public static GameManager Instance;
 
-  public GameObject BillboardPrefab;
+  public GameObject CardPrefab;
   public float XSpacing;
   public float ZSpacing;
   public List<TextAsset> StoryFiles;
 
   [HideInInspector] [System.NonSerialized]
-  public int BillboardIdx;
+  public int CardIdx;
 
   [HideInInspector] [System.NonSerialized]
   public List<int> StoryCounts;
   [HideInInspector] [System.NonSerialized]
-  public List<GameObject> Billboards;
+  public List<GameObject> Cards;
   [HideInInspector] [System.NonSerialized]
   public int StoryIdx;
 
+  private Text statusText;
+
   void Awake() {
     Instance = Instance ?? this;
+    statusText = GetComponentInChildren<Text>();
   }
 
   // Use this for initialization
   void Start () {
-    BillboardIdx = 0;
+    CardIdx = 0;
     StoryIdx = 0;
+    statusText.enabled = false;
     LoadStoryFiles();
+    SendMessage("CardChange", new int[]{0,0});
   }
 
   // Update is called once per frame
   void Update () {
+    var oldCardIdx = CardIdx;
+
     if (Input.GetKeyDown(KeyCode.DownArrow)) {
-      BillboardIdx++;
+      CardIdx++;
     } else if (Input.GetKeyDown(KeyCode.UpArrow)) {
-      BillboardIdx--;
+      CardIdx--;
     }
 
-    BillboardIdx = Mathf.Clamp(BillboardIdx, 0, StoryCounts[StoryIdx] - 1);
+    CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
+
+    if (CardIdx != oldCardIdx) {
+      SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
+    }
   }
 
   void LoadStoryFiles() {
     StoryCounts = new List<int>();
-    Billboards = new List<GameObject>();
+    Cards = new List<GameObject>();
     var pos = Vector3.zero;
 
     foreach (var file in StoryFiles) {
@@ -56,12 +67,15 @@ public class GameManager : MonoBehaviour {
       lines = lines.Select(line => line.Trim()).Where(line => line.Length > 0).ToList();
       StoryCounts.Add(lines.Count());
 
-      foreach (var line in lines) {
-        var billboard = Instantiate(BillboardPrefab) as GameObject;
-        var textComponent = billboard.GetComponentInChildren<Text>();
-        textComponent.text = line;
-        billboard.transform.position = pos;
-        Billboards.Add(billboard);
+      for (var i = 0; i < lines.Count(); i++) {
+        var line = lines[i];
+        var card = Instantiate(CardPrefab) as GameObject;
+        var textController = card.GetComponent<TextController>();
+        textController.SetText(line);
+        textController.SetIndex(i);
+        textController.TweenOut(0.1f);
+        card.transform.position = pos;
+        Cards.Add(card);
         pos += new Vector3(0, 0, -ZSpacing);
       }
       pos += new Vector3(XSpacing, 0, 0);
