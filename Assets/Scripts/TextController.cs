@@ -7,7 +7,7 @@ public class TextController : MonoBehaviour {
   public int index;
 
   private Text textComponent;
-  private Color color = Color.white;
+  private Color textColor = Color.white;
 
   void Awake () {
     textComponent = GetComponentInChildren<Text>();
@@ -26,27 +26,35 @@ public class TextController : MonoBehaviour {
   }
 
   public void SetColor(Color newColor) {
-    color = newColor;
+    textColor = newColor;
   }
 
   public void SetColor(string hexColor) {
-    color = HexToColor(hexColor);
+    textColor = HexToColor(hexColor);
   }
 
   public void TweenIn(float time = 2.0f) {
+    LeanTween.cancel(gameObject);
     LeanTween.value(gameObject,
                     c => textComponent.color = c,
                     textComponent.color,
-                    color,
+                    textColor,
                     time)
              .setEase(LeanTweenType.easeInQuad);
   }
 
   public void TweenOut(float time = 2.0f) {
+    LeanTween.cancel(gameObject);
+    var targetColor = textColor;
+    var darkenBy = Mathf.Min(targetColor.r, targetColor.g, targetColor.b) * 0.9f;
+    targetColor.r -= darkenBy;
+    targetColor.g -= darkenBy;
+    targetColor.b -= darkenBy;
+    targetColor.a = 0;
     LeanTween.value(gameObject,
                     c => textComponent.color = c,
                     textComponent.color,
-                    Color.clear,
+                    targetColor,
                     time)
              .setEase(LeanTweenType.easeOutQuad);
   }
