@@ -14,6 +14,10 @@ public class CardController : MonoBehaviour {
   }
 
   void CardChange(int[] indices) {
+    gameManager = gameManager ?? GameManager.Instance;
+Debug.Log(indices[0]);
+Debug.Log(indices[1]);
+Debug.Log(gameManager.Cards.Count());
     var oldCard = gameManager.Cards[indices.First()];
     var newCard = gameManager.Cards[indices.Last()];
     var oldCardText = oldCard.GetComponent<TextController>();

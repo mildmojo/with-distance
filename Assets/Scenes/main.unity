@@ -566,6 +566,8 @@ GameObject:
   - 114: {fileID: 1754541015}
   - 45: {fileID: 1754541014}
   - 114: {fileID: 1754541017}
+  - 65: {fileID: 1754541018}
+  - 54: {fileID: 1754541019}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -654,8 +656,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CardPrefab: {fileID: 100002, guid: 8e3a25f685a21354f82cf56791b00a5f, type: 2}
-  XSpacing: 200
-  ZSpacing: 400
+  FinalCardPrefab: {fileID: 100002, guid: 09e6242eb58a3aa4a93d0549de54b49c, type: 2}
+  XSpacing: 4000
+  ZSpacing: 600
   StoryFiles:
   - {fileID: 4900000, guid: 5fc4f2d553f4cec4f909440738222a95, type: 3}
   - {fileID: 4900000, guid: 07699e25883c82a4b9ca8a389b574d68, type: 3}
@@ -701,6 +704,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42d4a2f9bdee51543bcd9454a6a0cf71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!65 &1754541018
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1754541007}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 100, y: 100, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1754541019
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1754541007}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: .0500000007
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1757310200
 GameObject:
   m_ObjectHideFlags: 0
@@ -939,7 +969,7 @@ ParticleSystem:
         rgba: 4294967295
       minMaxState: 0
     startSize:
-      scalar: .00999999978
+      scalar: .0149999997
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -1024,7 +1054,7 @@ ParticleSystem:
     enabled: 1
     m_Type: 0
     rate:
-      scalar: 4
+      scalar: 3
       maxCurve:
         serializedVersion: 2
         m_Curve:
