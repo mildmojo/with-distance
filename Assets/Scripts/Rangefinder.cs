@@ -26,9 +26,20 @@ public class Rangefinder : MonoBehaviour
     }
 
     void Update() {
-        // Connect();
       IsActive = sp.IsOpen;
-      ReadSerialData();
+
+      if (IsActive) {
+        ReadSerialData();
+      } else {
+        // Kickstart fake sensor to minimum range.
+        if (distance_mm == 0) distance_mm = 50;
+
+        if (Input.GetKey(KeyCode.DownArrow)) {
+          distance_mm += 40 * Time.deltaTime;
+        } else if (Input.GetKey(KeyCode.UpArrow)) {
+          distance_mm -= 40 * Time.deltaTime;
+        }
+      }
     }
 
     void OnApplicationQuit() {

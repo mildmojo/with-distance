@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour {
   public static GameManager Instance;
 
   public GameObject CardPrefab;
+  public GameObject FinalCardPrefab;
   public float XSpacing;
   public float ZSpacing;
   public List<TextAsset> StoryFiles;
@@ -19,6 +20,8 @@ public class GameManager : MonoBehaviour {
 
   [HideInInspector] [System.NonSerialized]
   public List<int> StoryCounts;
+  [HideInInspector] [System.NonSerialized]
+  public List<List<GameObject>> Stories;
   [HideInInspector] [System.NonSerialized]
   public List<GameObject> Cards;
   [HideInInspector] [System.NonSerialized]
@@ -37,32 +40,58 @@ public class GameManager : MonoBehaviour {
     StoryIdx = 0;
     statusText.enabled = false;
     LoadStoryFiles();
+    Debug.Log("cardchange!");
     SendMessage("CardChange", new int[]{0,0});
   }
 
   // Update is called once per frame
   void Update () {
+    // var oldCardIdx = CardIdx;
+
+    // // if (Input.GetKeyDown(KeyCode.DownArrow)) {
+    // //   CardIdx++;
+    // // } else if (Input.GetKeyDown(KeyCode.UpArrow)) {
+    // //   CardIdx--;
+    // // }
+
+    // CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
+
+    // if (CardIdx != oldCardIdx) {
+    //   Debug.Log("cardchange 2!");
+    //   SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
+    // }
+  }
+
+  public void NextCard() {
     var oldCardIdx = CardIdx;
-
-    if (Input.GetKeyDown(KeyCode.DownArrow)) {
-      CardIdx++;
-    } else if (Input.GetKeyDown(KeyCode.UpArrow)) {
-      CardIdx--;
-    }
-
+    CardIdx++;
     CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
+Debug.Log("next");
 
     if (CardIdx != oldCardIdx) {
+      Debug.Log("cardchange next!");
+      SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
+    }
+  }
+
+  public void PrevCard() {
+    var oldCardIdx = CardIdx;
+    CardIdx--;
+    CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
+Debug.Log("prev");
+    if (CardIdx != oldCardIdx) {
+      Debug.Log("cardchange prev!");
       SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
     }
   }
 
   void LoadStoryFiles() {
     StoryCounts = new List<int>();
-    Cards = new List<GameObject>();
+    Stories = new List<List<GameObject>>();
     var pos = Vector3.zero;
 
     foreach (var file in StoryFiles) {
+      var cards = new List<GameObject>();
       var lines = file.text.Split('\n').ToList();
       lines = lines.Select(line => line.Trim()).Where(line => line.Length > 0).ToList();
       StoryCounts.Add(lines.Count());
@@ -75,11 +104,21 @@ public class GameManager : MonoBehaviour {
         textController.SetIndex(i);
         textController.TweenOut(0.1f);
         card.transform.position = pos;
-        Cards.Add(card);
+        cards.Add(card);
+        Debug.Log("card added");
         pos += new Vector3(0, 0, -ZSpacing);
       }
+
+      // Don't add card to story stack; it'll affect sensor distances.
+      var finalCard = Instantiate(FinalCardPrefab) as GameObject;
+      finalCard.transform.position = pos;
+      // cards.Add(finalCard);
+
+      Stories.Add(cards);
+      pos.z = 0;
       pos += new Vector3(XSpacing, 0, 0);
     }
+    Cards = Stories.First();
   }
 }
 

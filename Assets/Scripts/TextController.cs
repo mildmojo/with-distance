@@ -11,6 +11,7 @@ public class TextController : MonoBehaviour {
 
   void Awake () {
     textComponent = GetComponentInChildren<Text>();
+    textColor = textComponent.color;
   }
 
   void Update () {
