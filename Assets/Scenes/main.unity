@@ -655,13 +655,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4efbcf5ebd072d3419622bfb49e29046, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AttractPrefab: {fileID: 100002, guid: 4c6328fe4983dbf41984bffe7f76f0e0, type: 2}
   CardPrefab: {fileID: 100002, guid: 8e3a25f685a21354f82cf56791b00a5f, type: 2}
   FinalCardPrefab: {fileID: 100002, guid: 09e6242eb58a3aa4a93d0549de54b49c, type: 2}
   XSpacing: 4000
   ZSpacing: 600
   StoryFiles:
-  - {fileID: 4900000, guid: 5fc4f2d553f4cec4f909440738222a95, type: 3}
   - {fileID: 4900000, guid: 07699e25883c82a4b9ca8a389b574d68, type: 3}
+  - {fileID: 4900000, guid: 5fc4f2d553f4cec4f909440738222a95, type: 3}
 --- !u!45 &1754541014
 Skybox:
   m_ObjectHideFlags: 0

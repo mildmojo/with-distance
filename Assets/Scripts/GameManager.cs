@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 // using System.Collections;
@@ -9,6 +9,9 @@ public class GameManager : MonoBehaviour {
 
   public static GameManager Instance;
 
+  private const float IDLE_TIMEOUT = 20f;
+
+  public GameObject AttractPrefab;
   public GameObject CardPrefab;
   public GameObject FinalCardPrefab;
   public float XSpacing;
@@ -27,18 +30,39 @@ public class GameManager : MonoBehaviour {
   [HideInInspector] [System.NonSerialized]
   public int StoryIdx;
 
+  [HideInInspector] [System.NonSerialized]
+  public float SensorMinDistance;
+  [HideInInspector] [System.NonSerialized]
+  public float SensorMaxDistance;
+
+  private ShuffleDeck StoryDeck;
   private Text statusText;
+  private Rangefinder rangefinder;
+
+  public bool AttractMode {
+    get {
+      return StoryIdx == 0;
+    }
+  }
 
   void Awake() {
     Instance = Instance ?? this;
     statusText = GetComponentInChildren<Text>();
+    SensorMinDistance = PlayerPrefs.GetFloat("SensorMinDistance", 70);
+    SensorMaxDistance = PlayerPrefs.GetFloat("SensorMaxDistance", 250);
+
+    // Let's play hide-the-arrow. I'll go first.
+    Screen.showCursor = false;
   }
 
   // Use this for initialization
   void Start () {
+    rangefinder = Rangefinder.Instance;
     CardIdx = 0;
     StoryIdx = 0;
     statusText.enabled = false;
+    Stories = new List<List<GameObject>>();
+    SetupAttractMode();
     LoadStoryFiles();
     Debug.Log("cardchange!");
     SendMessage("CardChange", new int[]{0,0});
@@ -46,20 +70,36 @@ public class GameManager : MonoBehaviour {
 
   // Update is called once per frame
   void Update () {
-    // var oldCardIdx = CardIdx;
+    CheckAttractModeTimeout();
+  }
 
-    // // if (Input.GetKeyDown(KeyCode.DownArrow)) {
-    // //   CardIdx++;
-    // // } else if (Input.GetKeyDown(KeyCode.UpArrow)) {
-    // //   CardIdx--;
-    // // }
+  void CheckAttractModeTimeout() {
+    if (AttractMode) return;
+    if (rangefinder.idleTime > IDLE_TIMEOUT) {
+      Cards[CardIdx].GetComponent<TextController>().TweenOut();
+      StoryIdx = 0;
+      Debug.Log("idle; going into attract mode");
+      SendMessage("CardChange", new int[]{0,0});
+    }
+  }
 
-    // CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
+  public void NextStory() {
+    var newIdx = (int) StoryDeck.Draw();
+    SelectStory(newIdx);
+  }
 
-    // if (CardIdx != oldCardIdx) {
-    //   Debug.Log("cardchange 2!");
-    //   SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
-    // }
+  public void SelectStory(int newStoryIdx) {
+    var oldStoryIdx = StoryIdx;
+    StoryIdx = newStoryIdx;
+    Cards = Stories[StoryIdx];
+
+    foreach (var card in Stories[oldStoryIdx]) {
+      var text = card.GetComponent<TextController>();
+      text.TweenOut();
+    }
+
+    Debug.Log("New story: " + StoryIdx);
+    SendMessage("CardChange", new int[]{0,0});
   }
 
   public void NextCard() {
@@ -85,10 +125,17 @@ Debug.Log("prev");
     }
   }
 
+  void SetupAttractMode() {
+    var cards = new List<GameObject>();
+    var card = Instantiate(AttractPrefab) as GameObject;
+    cards.Add(card);
+    Stories.Add(cards);
+  }
+
   void LoadStoryFiles() {
     StoryCounts = new List<int>();
-    Stories = new List<List<GameObject>>();
-    var pos = Vector3.zero;
+    StoryDeck = new ShuffleDeck();
+    var pos = new Vector3(XSpacing * Stories.Count(), 0, 0);
 
     foreach (var file in StoryFiles) {
       var cards = new List<GameObject>();
@@ -115,6 +162,7 @@ Debug.Log("prev");
       // cards.Add(finalCard);
 
       Stories.Add(cards);
+      StoryDeck.Add(Stories.Count() - 1);
       pos.z = 0;
       pos += new Vector3(XSpacing, 0, 0);
     }
