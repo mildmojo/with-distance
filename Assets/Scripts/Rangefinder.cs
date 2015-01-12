@@ -21,19 +21,27 @@ public class Rangefinder : MonoBehaviour
     public bool IsActive;
 
     private SerialPort sp = new SerialPort("COM4", 9600);
-    private List<float> buffer = new List<float>();
-    private List<float> rawBuffer = new List<float>();
+    private List<float> buffer;
+    private List<float> rawBuffer;
 
     private GameManager gameManager;
 
     private float RANGE_MIN;
     private float RANGE_MAX;
 
+    public void Reset() {
+      idleTime = 0f;
+      // Game starts in attract mode where sensor sweep should be empty and
+      // sensor value should be maxed out.
+      buffer = new List<float>() {RANGE_MAX};
+      rawBuffer = new List<float>() {0};
+    }
+
     void Awake() {
       Instance = this;
-      RANGE_MIN = PlayerPrefs.GetFloat("SensorMinDistance", 70f);
-      RANGE_MAX = PlayerPrefs.GetFloat("SensorMaxDistance", 250f);
-      buffer.Add(RANGE_MIN);
+      RANGE_MIN = PlayerPrefs.GetFloat("SensorMinDistance", 80f);
+      RANGE_MAX = PlayerPrefs.GetFloat("SensorMaxDistance", 270f);
+      Reset();
     }
 
     void Start() {
@@ -58,9 +66,8 @@ public class Rangefinder : MonoBehaviour
 
       // Accrue idle time when sensor gets no readings (zeroes) or average
       // distance is beyond the max.
-      if (distance_mm < 0.1f || distance_mm >= RANGE_MAX) {
+      if (raw_mm < 0.1f || distance_mm >= RANGE_MAX) {
         idleTime += Time.deltaTime;
-        distance_mm = RANGE_MIN;
       } else {
         idleTime = 0f;
       }

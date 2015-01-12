@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEditor;
-// using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,7 +7,7 @@ public class GameManager : MonoBehaviour {
 
   public static GameManager Instance;
 
-  private const float IDLE_TIMEOUT = 20f;
+  public float IdleTimeout;
 
   public GameObject AttractPrefab;
   public GameObject CardPrefab;
@@ -48,8 +46,8 @@ public class GameManager : MonoBehaviour {
   void Awake() {
     Instance = Instance ?? this;
     statusText = GetComponentInChildren<Text>();
-    SensorMinDistance = PlayerPrefs.GetFloat("SensorMinDistance", 70);
-    SensorMaxDistance = PlayerPrefs.GetFloat("SensorMaxDistance", 250);
+    SensorMinDistance = PlayerPrefs.GetFloat("SensorMinDistance", 80);
+    SensorMaxDistance = PlayerPrefs.GetFloat("SensorMaxDistance", 270);
 
     // Let's play hide-the-arrow. I'll go first.
     Screen.showCursor = false;
@@ -75,11 +73,14 @@ public class GameManager : MonoBehaviour {
 
   void CheckAttractModeTimeout() {
     if (AttractMode) return;
-    if (rangefinder.idleTime > IDLE_TIMEOUT) {
-      Cards[CardIdx].GetComponent<TextController>().TweenOut();
-      StoryIdx = 0;
+    if (rangefinder.idleTime > IdleTimeout) {
+      SelectStory(0);
+      var camPos = Camera.main.transform.position;
+      Camera.main.transform.position = new Vector3(camPos.x, camPos.y, -ZSpacing / 2f);
+      // LeanTween.moveZ(Camera.main.gameObject, -ZSpacing / 2f, 1f)
+      //   .setEase(LeanTweenType.easeInQuad);
+      rangefinder.Reset();
       Debug.Log("idle; going into attract mode");
-      SendMessage("CardChange", new int[]{0,0});
     }
   }
 
@@ -92,33 +93,36 @@ public class GameManager : MonoBehaviour {
     var oldStoryIdx = StoryIdx;
     StoryIdx = newStoryIdx;
     Cards = Stories[StoryIdx];
+    CardIdx = 0;
+
+    Debug.Log("New story: " + StoryIdx);
 
     foreach (var card in Stories[oldStoryIdx]) {
       var text = card.GetComponent<TextController>();
-      text.TweenOut();
+      text.TweenOut(0.5f);
     }
 
-    Debug.Log("New story: " + StoryIdx);
-    SendMessage("CardChange", new int[]{0,0});
+    LeanTween.moveX(Camera.main.gameObject, (float) XSpacing * StoryIdx, 1f)
+      .setEase(LeanTweenType.easeInOutCirc)
+      .setOnComplete(() => {
+        SendMessage("CardChange", new int[]{0,0});
+      });
   }
 
   public void NextCard() {
-    var oldCardIdx = CardIdx;
-    CardIdx++;
-    CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
 Debug.Log("next");
-
-    if (CardIdx != oldCardIdx) {
-      Debug.Log("cardchange next!");
-      SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
-    }
+    SelectCard(CardIdx + 1);
   }
 
   public void PrevCard() {
-    var oldCardIdx = CardIdx;
-    CardIdx--;
-    CardIdx = Mathf.Clamp(CardIdx, 0, StoryCounts[StoryIdx] - 1);
 Debug.Log("prev");
+    SelectCard(CardIdx - 1);
+  }
+
+  public void SelectCard(int newCardIdx) {
+    var oldCardIdx = CardIdx;
+    CardIdx = newCardIdx;
+    CardIdx = Mathf.Clamp(CardIdx, 0, Stories[StoryIdx].Count() - 1);
     if (CardIdx != oldCardIdx) {
       Debug.Log("cardchange prev!");
       SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
@@ -166,22 +170,8 @@ Debug.Log("prev");
       pos.z = 0;
       pos += new Vector3(XSpacing, 0, 0);
     }
+
+    StoryDeck.Reshuffle();
     Cards = Stories.First();
-  }
-}
-
-// Add a button to the editor to sort the river file list by name.
-[CustomEditor(typeof(GameManager))]
-public class GameManagerFileSorter : Editor {
-  public override void OnInspectorGUI () {
-    DrawDefaultInspector();
-    if (GUILayout.Button("Sort by name")) {
-      var currentTarget = (GameManager) target;
-      currentTarget.StoryFiles = currentTarget.StoryFiles.OrderBy(x => x.name).ToList();
-    }
-  }
-
-  int compareNames(TextAsset a, TextAsset b) {
-    return a.name.CompareTo(b.name);
   }
 }

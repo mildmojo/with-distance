@@ -53,9 +53,10 @@ public class CameraController : MonoBehaviour {
     cameraPos = (Vector3.forward * worldZ) + (Vector3.right * gameManager.XSpacing * gameManager.StoryIdx);
     transform.position = Vector3.Lerp(transform.position, cameraPos, Time.deltaTime * CameraSnappiness);
 
-Debug.Log("rangefinder: " + rangefinder.distance_mm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + RANGE_MIN) +
-          ", distSensed: " + distSensed + ", sensorChunk: " + sensorChunk +
-          ", ratio: " + (sensorChunk / (cardGap - colliderSize)));
+Debug.Log("cardIdx: " + gameManager.CardIdx + ", storyIdx: " + gameManager.StoryIdx);
+// Debug.Log("rangefinder: " + rangefinder.distance_mm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + RANGE_MIN) +
+//           ", distSensed: " + distSensed + ", sensorChunk: " + sensorChunk +
+//           ", ratio: " + (sensorChunk / (cardGap - colliderSize)));
   }
 
   void OnTriggerEnter(Collider c) {
@@ -68,12 +69,14 @@ Debug.Log("rangefinder: " + rangefinder.distance_mm + ", range subtraction: " + 
     var acceptableDiff = gameManager.XSpacing / 2f;
     if (Mathf.Abs(cameraX - storyX) > acceptableDiff) return;
 
+    var card = c.gameObject;
+    var cardIdx = card.GetComponent<TextController>().index;
     if (c.bounds.center.z < collider.bounds.center.z) {
       // Front edge of collider, move to the back (-z).
-      gameManager.NextCard();
+      gameManager.SelectCard(cardIdx);
     } else {
       // Back edge of the collider, move to the front (+z).
-      gameManager.PrevCard();
+      gameManager.SelectCard(cardIdx - 1);
     }
   }
 

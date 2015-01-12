@@ -34,17 +34,18 @@ public class TextController : MonoBehaviour {
     textColor = HexToColor(hexColor);
   }
 
-  public void TweenIn(float time = 2.0f) {
+  public LTDescr TweenIn(float time = 1.8f) {
     LeanTween.cancel(gameObject);
-    LeanTween.value(gameObject,
-                    c => textComponent.color = c,
-                    textComponent.color,
-                    textColor,
-                    time)
-             .setEase(LeanTweenType.easeInQuad);
+    var tween = LeanTween.value(gameObject,
+                                c => textComponent.color = c,
+                                textComponent.color,
+                                textColor,
+                                time)
+                         .setEase(LeanTweenType.easeOutQuad);
+    return tween;
   }
 
-  public void TweenOut(float time = 2.0f) {
+  public LTDescr TweenOut(float time = 1.8f) {
     LeanTween.cancel(gameObject);
     var targetColor = textColor;
     var darkenBy = Mathf.Min(targetColor.r, targetColor.g, targetColor.b) * 0.9f;
@@ -52,12 +53,13 @@ public class TextController : MonoBehaviour {
     targetColor.g -= darkenBy;
     targetColor.b -= darkenBy;
     targetColor.a = 0;
-    LeanTween.value(gameObject,
-                    c => textComponent.color = c,
-                    textComponent.color,
-                    targetColor,
-                    time)
-             .setEase(LeanTweenType.easeOutQuad);
+    var tween = LeanTween.value(gameObject,
+                                c => textComponent.color = c,
+                                textComponent.color,
+                                targetColor,
+                                time)
+                         .setEase(LeanTweenType.easeOutQuad);
+    return tween;
   }
 
   Color HexToColor(string hex) {

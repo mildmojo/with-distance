@@ -5,6 +5,7 @@ TagManager:
   tags:
   - Card
   - FinalCard
+  - AttractCard
   - 
   Builtin Layer 0: Default
   Builtin Layer 1: TransparentFX
