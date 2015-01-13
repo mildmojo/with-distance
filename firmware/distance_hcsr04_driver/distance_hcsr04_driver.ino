@@ -6,6 +6,7 @@
                          // Maximum sensor distance is rated at 400-500cm.
 
 NewPing sonar(PING_PIN, PING_PIN, MAX_DISTANCE); // NewPing setup of pin and maximum distance.
+unsigned int last_reading = 0;
 
 void setup() {
   Serial.begin(57600); // Open serial monitor at 115200 baud to see ping results.
@@ -13,17 +14,19 @@ void setup() {
 }
 
 void loop() {
+  // Rate limiting.
   delay(30);
-  digitalWrite(LED_PIN, 1);
-  unsigned int uS = sonar.ping(); // Send ping, get ping time in microseconds (uS).
-  serial_print(uS);
+
+  // Send ping, get ping time in microseconds (uS).
+  // (0 means no echo or beyond max distance)
+  digitalWrite(LED_PIN, last_reading > 0);
+  last_reading = sonar.ping();
+  serial_print(last_reading);
   digitalWrite(LED_PIN, 0);
 }
 
 void serial_print(unsigned int uS) {
-  //Serial.print("Ping: ");
   Serial.print(uS);
-  Serial.print("\n"); // Convert ping time to distance and print result (0 = outside set distance range, no ping echo)
-  //Serial.println(" uS");
+  Serial.print("\n");
 }
 
