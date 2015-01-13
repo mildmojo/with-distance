@@ -9,10 +9,10 @@ public class Rangefinder : MonoBehaviour
     public static Rangefinder Instance;
 
     [HideInInspector] [System.NonSerialized]
-    public float distance_mm;
+    public float distance_cm;
 
     [HideInInspector] [System.NonSerialized]
-    public float raw_mm;
+    public float raw_cm;
 
     [HideInInspector] [System.NonSerialized]
     public float idleTime;
@@ -56,17 +56,17 @@ public class Rangefinder : MonoBehaviour
         ReadSerialData();
       } else {
         if (Input.GetKey(KeyCode.DownArrow)) {
-          distance_mm += 40 * Time.deltaTime;
+          distance_cm += 40 * Time.deltaTime;
         } else if (Input.GetKey(KeyCode.UpArrow)) {
-          distance_mm -= 40 * Time.deltaTime;
+          distance_cm -= 40 * Time.deltaTime;
         }
       }
 
-      distance_mm = Mathf.Max(distance_mm, RANGE_MIN);
+      distance_cm = Mathf.Max(distance_cm, RANGE_MIN);
 
       // Accrue idle time when sensor gets no readings (zeroes) or average
       // distance is beyond the max.
-      if (raw_mm < 0.1f || distance_mm >= RANGE_MAX) {
+      if (raw_cm < 0.1f || distance_cm >= RANGE_MAX) {
         idleTime += Time.deltaTime;
       } else {
         idleTime = 0f;
@@ -108,12 +108,12 @@ public class Rangefinder : MonoBehaviour
       // Accumulate all sensor readings, including zeroes.
       rawBuffer.Add(range_us / 58f);
       if (rawBuffer.Count() > 10) rawBuffer.RemoveAt(0);
-      raw_mm = rawBuffer.Average();
+      raw_cm = rawBuffer.Average();
 
       // Accumulate nonzero sensor readings converted to distance, calc average.
       if (range_us > 0) buffer.Add(range_us / 58f);
       if (buffer.Count() > 10) buffer.RemoveAt(0);
-      distance_mm = buffer.Average();
+      distance_cm = buffer.Average();
     }
 
 }

@@ -33,7 +33,7 @@ public class CameraController : MonoBehaviour {
 
     // Size of gap between cards in sensor units
     var sensorChunk = (RANGE_MAX - RANGE_MIN) / gameManager.Cards.Count();
-    var distSensed = Mathf.Min(rangefinder.distance_mm, RANGE_MAX);
+    var distSensed = Mathf.Min(rangefinder.distance_cm, RANGE_MAX);
     // Query the rangefinder. If in attract mode, invert the reading so the closer
     // you get, the farther you recede from the attract mode message.
     if (gameManager.AttractMode) {
@@ -54,7 +54,7 @@ public class CameraController : MonoBehaviour {
     transform.position = Vector3.Lerp(transform.position, cameraPos, Time.deltaTime * CameraSnappiness);
 
 Debug.Log("cardIdx: " + gameManager.CardIdx + ", storyIdx: " + gameManager.StoryIdx);
-// Debug.Log("rangefinder: " + rangefinder.distance_mm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + RANGE_MIN) +
+// Debug.Log("rangefinder: " + rangefinder.distance_cm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + RANGE_MIN) +
 //           ", distSensed: " + distSensed + ", sensorChunk: " + sensorChunk +
 //           ", ratio: " + (sensorChunk / (cardGap - colliderSize)));
   }
