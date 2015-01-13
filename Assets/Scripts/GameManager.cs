@@ -37,6 +37,12 @@ public class GameManager : MonoBehaviour {
   private Text statusText;
   private Rangefinder rangefinder;
 
+  public float SensorRange {
+    get {
+      return SensorMaxDistance - SensorMinDistance;
+    }
+  }
+
   public bool AttractMode {
     get {
       return StoryIdx == 0;
@@ -69,18 +75,52 @@ public class GameManager : MonoBehaviour {
   // Update is called once per frame
   void Update () {
     CheckAttractModeTimeout();
+    CheckDebugMode();
   }
 
   void CheckAttractModeTimeout() {
-    if (AttractMode) return;
     if (rangefinder.idleTime > IdleTimeout) {
-      SelectStory(0);
-      var camPos = Camera.main.transform.position;
-      Camera.main.transform.position = new Vector3(camPos.x, camPos.y, -ZSpacing / 2f);
-      // LeanTween.moveZ(Camera.main.gameObject, -ZSpacing / 2f, 1f)
-      //   .setEase(LeanTweenType.easeInQuad);
       rangefinder.Reset();
-      Debug.Log("idle; going into attract mode");
+      if (!AttractMode) {
+        SelectStory(0);
+        var camPos = Camera.main.transform.position;
+        Camera.main.transform.position = new Vector3(camPos.x, camPos.y, -ZSpacing / 2f);
+        Debug.Log("idle; going into attract mode");
+      }
+    }
+  }
+
+  void CheckDebugMode() {
+    if (Input.GetKeyDown(KeyCode.D)) {
+      statusText.enabled = !statusText.enabled;
+    }
+
+    if (!statusText.enabled) return;
+
+    statusText.text = "Range (cm): " + SensorMinDistance + " min, "
+      + SensorMaxDistance + " max";
+
+    // Adjust settings, save to disk.
+    if (Input.GetKeyDown(KeyCode.LeftBracket)) {
+      SensorMinDistance -= 5;
+      PlayerPrefs.SetFloat("SensorMinDistance", SensorMinDistance);
+      PlayerPrefs.Save();
+    } else if (Input.GetKeyDown(KeyCode.RightBracket)) {
+      SensorMinDistance += 5;
+      PlayerPrefs.SetFloat("SensorMinDistance", SensorMinDistance);
+      PlayerPrefs.Save();
+    } else if (Input.GetKeyDown(KeyCode.Comma)) {
+      SensorMaxDistance -= 5;
+      PlayerPrefs.SetFloat("SensorMaxDistance", SensorMaxDistance);
+      PlayerPrefs.Save();
+    } else if (Input.GetKeyDown(KeyCode.Period)) {
+      SensorMaxDistance += 5;
+      PlayerPrefs.SetFloat("SensorMaxDistance", SensorMaxDistance);
+      PlayerPrefs.Save();
+    }
+
+    if (rangefinder.last_raw_cm > 0) {
+      statusText.text += "\n(hit " + Mathf.Round(rangefinder.last_raw_cm) + ")";
     }
   }
 

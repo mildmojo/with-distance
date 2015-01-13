@@ -8,16 +8,18 @@ public class Rangefinder : MonoBehaviour
 {
     public static Rangefinder Instance;
 
-    [HideInInspector] [System.NonSerialized]
+    [System.NonSerialized]
     public float distance_cm;
 
-    [HideInInspector] [System.NonSerialized]
+    [System.NonSerialized]
     public float raw_cm;
+    [System.NonSerialized]
+    public float last_raw_cm;
 
-    [HideInInspector] [System.NonSerialized]
+    [System.NonSerialized]
     public float idleTime;
 
-    [HideInInspector] [System.NonSerialized]
+    [System.NonSerialized]
     public bool IsActive;
 
     private SerialPort sp = new SerialPort("COM4", 9600);
@@ -26,27 +28,22 @@ public class Rangefinder : MonoBehaviour
 
     private GameManager gameManager;
 
-    private float RANGE_MIN;
-    private float RANGE_MAX;
-
     public void Reset() {
       idleTime = 0f;
       // Game starts in attract mode where sensor sweep should be empty and
       // sensor value should be maxed out.
-      buffer = new List<float>() {RANGE_MAX};
+      buffer = new List<float>() {gameManager.SensorMaxDistance};
       rawBuffer = new List<float>() {0};
     }
 
     void Awake() {
       Instance = this;
-      RANGE_MIN = PlayerPrefs.GetFloat("SensorMinDistance", 80f);
-      RANGE_MAX = PlayerPrefs.GetFloat("SensorMaxDistance", 270f);
-      Reset();
     }
 
     void Start() {
-      StartCoroutine("Connect");
       gameManager = GameManager.Instance;
+      Reset();
+      StartCoroutine("Connect");
     }
 
     void Update() {
@@ -62,11 +59,13 @@ public class Rangefinder : MonoBehaviour
         }
       }
 
-      distance_cm = Mathf.Max(distance_cm, RANGE_MIN);
+      distance_cm = Mathf.Max(distance_cm, gameManager.SensorMinDistance);
 
       // Accrue idle time when sensor gets no readings (zeroes) or average
       // distance is beyond the max.
-      if (raw_cm < 0.1f || distance_cm >= RANGE_MAX) {
+      var min_cm = gameManager.SensorMinDistance;
+      var max_cm = gameManager.SensorMaxDistance;
+      if (raw_cm < min_cm * 0.25 || distance_cm >= max_cm) {
         idleTime += Time.deltaTime;
       } else {
         idleTime = 0f;
@@ -109,6 +108,7 @@ public class Rangefinder : MonoBehaviour
       rawBuffer.Add(range_us / 58f);
       if (rawBuffer.Count() > 10) rawBuffer.RemoveAt(0);
       raw_cm = rawBuffer.Average();
+      last_raw_cm = rawBuffer.Last();
 
       // Accumulate nonzero sensor readings converted to distance, calc average.
       if (range_us > 0) buffer.Add(range_us / 58f);

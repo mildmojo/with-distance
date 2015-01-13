@@ -10,15 +10,10 @@ public class CameraController : MonoBehaviour {
   private GameManager gameManager;
   private float finalCardTime;
 
-  private float RANGE_MIN;
-  private float RANGE_MAX;
-
   void Start () {
     cameraPos = Camera.main.transform.position;
     rangefinder = Rangefinder.Instance;
     gameManager = GameManager.Instance;
-    RANGE_MIN = gameManager.SensorMinDistance;
-    RANGE_MAX = gameManager.SensorMaxDistance;
   }
 
   void Update () {
@@ -32,17 +27,17 @@ public class CameraController : MonoBehaviour {
     var cardGap = gameManager.ZSpacing;
 
     // Size of gap between cards in sensor units
-    var sensorChunk = (RANGE_MAX - RANGE_MIN) / gameManager.Cards.Count();
-    var distSensed = Mathf.Min(rangefinder.distance_cm, RANGE_MAX);
+    var sensorChunk = gameManager.SensorRange / gameManager.Cards.Count();
+    var distSensed = Mathf.Min(rangefinder.distance_cm, gameManager.SensorMaxDistance);
     // Query the rangefinder. If in attract mode, invert the reading so the closer
     // you get, the farther you recede from the attract mode message.
     if (gameManager.AttractMode) {
       // Just invert the reading so moving closer becomes moving away.
-      distSensed = RANGE_MAX - distSensed;
+      distSensed = gameManager.SensorMaxDistance - distSensed;
     } else {
       // Rangefinder reading relative to current card
       // (raw reading minus all gaps for previous cards minus minimum range)
-      distSensed -= sensorChunk * gameManager.CardIdx + RANGE_MIN;
+      distSensed -= sensorChunk * gameManager.CardIdx + gameManager.SensorMinDistance;
     }
     // Start at outward edge of card's collider and count outward by sensor
     // reading converted to world units.
@@ -54,7 +49,7 @@ public class CameraController : MonoBehaviour {
     transform.position = Vector3.Lerp(transform.position, cameraPos, Time.deltaTime * CameraSnappiness);
 
 Debug.Log("cardIdx: " + gameManager.CardIdx + ", storyIdx: " + gameManager.StoryIdx);
-// Debug.Log("rangefinder: " + rangefinder.distance_cm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + RANGE_MIN) +
+// Debug.Log("rangefinder: " + rangefinder.distance_cm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + gameManager.SensorMinDistance) +
 //           ", distSensed: " + distSensed + ", sensorChunk: " + sensorChunk +
 //           ", ratio: " + (sensorChunk / (cardGap - colliderSize)));
   }
