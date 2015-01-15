@@ -55,8 +55,10 @@ public class Rangefinder : MonoBehaviour
       } else {
         if (Input.GetKey(KeyCode.DownArrow)) {
           distance_cm += 40 * Time.deltaTime;
+          idleTime = 0f;
         } else if (Input.GetKey(KeyCode.UpArrow)) {
           distance_cm -= 40 * Time.deltaTime;
+          idleTime = 0f;
         }
       }
 
