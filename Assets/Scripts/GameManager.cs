@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour {
   public GameObject AttractPrefab;
   public GameObject CardPrefab;
   public GameObject FinalCardPrefab;
+  public Material DefaultStoryBackground;
   public Font DefaultCardFont;
   public int DefaultCardFontSize;
   public float XSpacing;
@@ -203,9 +204,9 @@ Debug.Log("prev");
   void LoadStoryFiles() {
     StoryDeck = new ShuffleDeck();
     var pos = new Vector3(XSpacing * Stories.Count(), 0, 0);
-    var fontPattern = new Regex(@"^<font (.+?) ?(\d+)?>");
 
     foreach (var file in StoryFiles) {
+      var storyBackground = DefaultStoryBackground;
       var currentFont = DefaultCardFont;
       var currentFontSize = DefaultCardFontSize;
       var cards = new List<GameObject>();
@@ -216,19 +217,15 @@ Debug.Log("prev");
         var line = lines[i];
 
         // Look for font changes.
-        var fontMatch = fontPattern.Match(line);
-        if (fontMatch.Success) {
-          var fontName = fontMatch.Groups[1].Value;
-          var fontSize = fontMatch.Groups[2].Value;
-          if (fontName == "default") {
-            currentFont = DefaultCardFont;
-          } else {
-            currentFont = FontManager.Instance.GetFont(fontName);
-          }
-          try {
-            currentFontSize = Convert.ToInt32(fontSize);
-          } catch {}
+        if (Regex.Match(line, @"^<font").Success) {
+          currentFont = getFontFromLine(line) ?? currentFont;
+          currentFontSize = getFontSizeFromLine(line) ?? currentFontSize;
           continue;
+        }
+
+        // Look for background changes.
+        if (Regex.Match(line, @"^<background").Success) {
+          storyBackground = getBackgroundFromLine(line) ?? storyBackground;
         }
 
         var card = Instantiate(CardPrefab) as GameObject;
@@ -236,7 +233,7 @@ Debug.Log("prev");
         textController.SetFont(currentFont);
         textController.SetFontSize(currentFontSize);
         textController.SetText(line);
-        textController.SetIndex(i);
+        textController.SetIndex(cards.Count());
         textController.TweenOut(0.1f);
         card.transform.position = pos;
         cards.Add(card);
@@ -258,4 +255,48 @@ Debug.Log("prev");
     StoryDeck.Reshuffle();
     Cards = Stories.First();
   }
+
+  Font getFontFromLine(string line) {
+    Font currentFont = null;
+    var fontPattern = new Regex(@"^<font (.+?) ?(\d+)?>");
+    var fontMatch = fontPattern.Match(line);
+    if (fontMatch.Success) {
+      var fontName = fontMatch.Groups[1].Value;
+      if (fontName == "default") {
+        currentFont = DefaultCardFont;
+      } else {
+        currentFont = FontManager.Instance.GetFont(fontName);
+      }
+    }
+    return currentFont;
+  }
+
+  int? getFontSizeFromLine(string line) {
+    int? currentFontSize = null;
+    var fontPattern = new Regex(@"^<font (.+?) ?(\d+)?>");
+    var fontMatch = fontPattern.Match(line);
+    if (fontMatch.Success) {
+      var fontSize = fontMatch.Groups[2].Value;
+      try {
+        currentFontSize = Convert.ToInt32(fontSize);
+      } catch {}
+    }
+    return currentFontSize;
+  }
+
+  Material getBackgroundFromLine(string line) {
+    Material currentBackground = null;
+    var bgPattern = new Regex(@"^<bg (.+?) ?(\d+)?>");
+    var bgMatch = bgPattern.Match(line);
+    if (bgMatch.Success) {
+      var bgName = bgMatch.Groups[1].Value;
+      if (bgName == "default") {
+        currentBackground = DefaultStoryBackground;
+      } else {
+        currentBackground = BackgroundManager.Instance.GetBackground(bgName);
+      }
+    }
+    return currentBackground;
+  }
+
 }
