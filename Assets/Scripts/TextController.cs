@@ -34,6 +34,14 @@ public class TextController : MonoBehaviour {
     textColor = HexToColor(hexColor);
   }
 
+  public void SetFont(Font newFont) {
+    textComponent.font = newFont;
+  }
+
+  public void SetFontSize(int newFontSize) {
+    textComponent.fontSize = newFontSize;
+  }
+
   public LTDescr TweenIn(float time = 1.8f) {
     LeanTween.cancel(gameObject);
     var tween = LeanTween.value(gameObject,

@@ -24,7 +24,6 @@ public class AttractController : MonoBehaviour {
     // Camera movement is inverted for attract mode; getting closer moves cam away.
     // At maximum range, change stories.
     var maxZ = -gameManager.ZSpacing * 0.9;
-Debug.Log("camera Z: " + Camera.main.transform.position.z + ", max Z: " + maxZ);
     if (Camera.main.transform.position.z < maxZ) {
       Debug.Log("Leaving attract mode, " + Camera.main.transform.position.z + " < " + maxZ);
       TweenOut();

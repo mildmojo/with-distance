@@ -32,7 +32,8 @@ public class Rangefinder : MonoBehaviour
       idleTime = 0f;
       // Game starts in attract mode where sensor sweep should be empty and
       // sensor value should be maxed out.
-      buffer = new List<float>() {gameManager.SensorMaxDistance};
+      distance_cm = gameManager.SensorMaxDistance;
+      buffer = new List<float>() {distance_cm};
       rawBuffer = new List<float>() {0};
     }
 
