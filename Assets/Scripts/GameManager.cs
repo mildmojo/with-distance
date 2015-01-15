@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+using System.Text.RegularExpressions;
 
 public class GameManager : MonoBehaviour {
 
@@ -12,15 +14,16 @@ public class GameManager : MonoBehaviour {
   public GameObject AttractPrefab;
   public GameObject CardPrefab;
   public GameObject FinalCardPrefab;
+  public Font DefaultCardFont;
+  public int DefaultCardFontSize;
   public float XSpacing;
   public float ZSpacing;
+  public List<GameObject> TimerDots;
   public List<TextAsset> StoryFiles;
 
   [HideInInspector] [System.NonSerialized]
   public int CardIdx;
 
-  [HideInInspector] [System.NonSerialized]
-  public List<int> StoryCounts;
   [HideInInspector] [System.NonSerialized]
   public List<List<GameObject>> Stories;
   [HideInInspector] [System.NonSerialized]
@@ -79,14 +82,32 @@ public class GameManager : MonoBehaviour {
   }
 
   void CheckAttractModeTimeout() {
-    if (rangefinder.idleTime > IdleTimeout) {
+    var idleTime = rangefinder.idleTime;
+    // Always reset rangefinder idleTime so we don't continuously trigger timeout.
+    if (idleTime > IdleTimeout) {
       rangefinder.Reset();
-      if (!AttractMode) {
-        SelectStory(0);
-        var camPos = Camera.main.transform.position;
-        Camera.main.transform.position = new Vector3(camPos.x, camPos.y, -ZSpacing / 2f);
-        Debug.Log("idle; going into attract mode");
+    };
+
+    if (AttractMode) return;
+
+    // Show timeout dots for inactivity.
+    var dotTime = idleTime - IdleTimeout * 0.4;
+    var dotTotalTime = IdleTimeout * 0.5;
+    for (var i = 0; i < TimerDots.Count(); i++) {
+      // If time has passed this dot's interval, activate it.
+      if (dotTime > (dotTotalTime / TimerDots.Count()) * i) {
+        TimerDots[i].active = true;
       }
+    }
+
+    if (idleTime > IdleTimeout || Input.GetKeyDown(KeyCode.R)) {
+      foreach (var dot in TimerDots) {
+        dot.active = false;
+      }
+      SelectStory(0);
+      var camPos = Camera.main.transform.position;
+      Camera.main.transform.position = new Vector3(camPos.x, camPos.y, -ZSpacing / 2f);
+      Debug.Log("idle; going into attract mode");
     }
   }
 
@@ -99,6 +120,7 @@ public class GameManager : MonoBehaviour {
 
     statusText.text = "Range (cm): " + SensorMinDistance + " min, "
       + SensorMaxDistance + " max";
+    statusText.text += "\n(dist_cm " + Mathf.Round(rangefinder.distance_cm) + ")";
 
     // Adjust settings, save to disk.
     if (Input.GetKeyDown(KeyCode.LeftBracket)) {
@@ -147,6 +169,8 @@ public class GameManager : MonoBehaviour {
       .setOnComplete(() => {
         SendMessage("CardChange", new int[]{0,0});
       });
+
+    rangefinder.Reset();
   }
 
   public void NextCard() {
@@ -177,20 +201,40 @@ Debug.Log("prev");
   }
 
   void LoadStoryFiles() {
-    StoryCounts = new List<int>();
     StoryDeck = new ShuffleDeck();
     var pos = new Vector3(XSpacing * Stories.Count(), 0, 0);
+    var fontPattern = new Regex(@"^<font (.+?) ?(\d+)?>");
 
     foreach (var file in StoryFiles) {
+      var currentFont = DefaultCardFont;
+      var currentFontSize = DefaultCardFontSize;
       var cards = new List<GameObject>();
       var lines = file.text.Split('\n').ToList();
       lines = lines.Select(line => line.Trim()).Where(line => line.Length > 0).ToList();
-      StoryCounts.Add(lines.Count());
 
       for (var i = 0; i < lines.Count(); i++) {
         var line = lines[i];
+
+        // Look for font changes.
+        var fontMatch = fontPattern.Match(line);
+        if (fontMatch.Success) {
+          var fontName = fontMatch.Groups[1].Value;
+          var fontSize = fontMatch.Groups[2].Value;
+          if (fontName == "default") {
+            currentFont = DefaultCardFont;
+          } else {
+            currentFont = FontManager.Instance.GetFont(fontName);
+          }
+          try {
+            currentFontSize = Convert.ToInt32(fontSize);
+          } catch {}
+          continue;
+        }
+
         var card = Instantiate(CardPrefab) as GameObject;
         var textController = card.GetComponent<TextController>();
+        textController.SetFont(currentFont);
+        textController.SetFontSize(currentFontSize);
         textController.SetText(line);
         textController.SetIndex(i);
         textController.TweenOut(0.1f);

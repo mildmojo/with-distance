@@ -48,7 +48,7 @@ public class CameraController : MonoBehaviour {
     cameraPos = (Vector3.forward * worldZ) + (Vector3.right * gameManager.XSpacing * gameManager.StoryIdx);
     transform.position = Vector3.Lerp(transform.position, cameraPos, Time.deltaTime * CameraSnappiness);
 
-Debug.Log("cardIdx: " + gameManager.CardIdx + ", storyIdx: " + gameManager.StoryIdx);
+// Debug.Log("cardIdx: " + gameManager.CardIdx + ", storyIdx: " + gameManager.StoryIdx);
 // Debug.Log("rangefinder: " + rangefinder.distance_cm + ", range subtraction: " + (sensorChunk * gameManager.CardIdx + gameManager.SensorMinDistance) +
 //           ", distSensed: " + distSensed + ", sensorChunk: " + sensorChunk +
 //           ", ratio: " + (sensorChunk / (cardGap - colliderSize)));
