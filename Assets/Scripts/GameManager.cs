@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour {
   public GameObject AttractPrefab;
   public GameObject CardPrefab;
   public GameObject FinalCardPrefab;
-  public Material DefaultStoryBackground;
+  public Texture2D DefaultStoryBackground;
   public Font DefaultCardFont;
   public int DefaultCardFontSize;
   public float XSpacing;
@@ -22,22 +22,25 @@ public class GameManager : MonoBehaviour {
   public List<GameObject> TimerDots;
   public List<TextAsset> StoryFiles;
 
-  [HideInInspector] [System.NonSerialized]
+  [System.NonSerialized]
   public int CardIdx;
 
-  [HideInInspector] [System.NonSerialized]
+  [System.NonSerialized]
   public List<List<GameObject>> Stories;
-  [HideInInspector] [System.NonSerialized]
+  [System.NonSerialized]
   public List<GameObject> Cards;
-  [HideInInspector] [System.NonSerialized]
+  [System.NonSerialized]
   public int StoryIdx;
 
-  [HideInInspector] [System.NonSerialized]
+  [System.NonSerialized]
   public float SensorMinDistance;
-  [HideInInspector] [System.NonSerialized]
+  [System.NonSerialized]
   public float SensorMaxDistance;
 
   private ShuffleDeck StoryDeck;
+  private List<Texture2D> StoryBackgrounds;
+  private GameObject background;
+  private GameObject scrim;
   private Text statusText;
   private Rangefinder rangefinder;
 
@@ -58,6 +61,8 @@ public class GameManager : MonoBehaviour {
     statusText = GetComponentInChildren<Text>();
     SensorMinDistance = PlayerPrefs.GetFloat("SensorMinDistance", 80);
     SensorMaxDistance = PlayerPrefs.GetFloat("SensorMaxDistance", 270);
+    background = transform.Find("Background").gameObject;
+    scrim = transform.Find("Scrim").gameObject;
 
     // Let's play hide-the-arrow. I'll go first.
     Screen.showCursor = false;
@@ -72,8 +77,7 @@ public class GameManager : MonoBehaviour {
     Stories = new List<List<GameObject>>();
     SetupAttractMode();
     LoadStoryFiles();
-    Debug.Log("cardchange!");
-    SendMessage("CardChange", new int[]{0,0});
+    SelectStory(0);
   }
 
   // Update is called once per frame
@@ -96,14 +100,13 @@ public class GameManager : MonoBehaviour {
     var dotTotalTime = IdleTimeout * 0.5;
     for (var i = 0; i < TimerDots.Count(); i++) {
       // If time has passed this dot's interval, activate it.
-      if (dotTime > (dotTotalTime / TimerDots.Count()) * i) {
-        TimerDots[i].active = true;
-      }
+      var isActive = dotTime > (dotTotalTime / TimerDots.Count()) * i;
+      TimerDots[i].SetActive(isActive);
     }
 
     if (idleTime > IdleTimeout || Input.GetKeyDown(KeyCode.R)) {
       foreach (var dot in TimerDots) {
-        dot.active = false;
+        dot.SetActive(false);
       }
       SelectStory(0);
       var camPos = Camera.main.transform.position;
@@ -122,6 +125,10 @@ public class GameManager : MonoBehaviour {
     statusText.text = "Range (cm): " + SensorMinDistance + " min, "
       + SensorMaxDistance + " max";
     statusText.text += "\n(dist_cm " + Mathf.Round(rangefinder.distance_cm) + ")";
+
+    if (Input.GetKeyDown(KeyCode.N)) {
+      NextStory();
+    }
 
     // Adjust settings, save to disk.
     if (Input.GetKeyDown(KeyCode.LeftBracket)) {
@@ -162,8 +169,13 @@ public class GameManager : MonoBehaviour {
 
     foreach (var card in Stories[oldStoryIdx]) {
       var text = card.GetComponent<TextController>();
-      text.TweenOut(0.5f);
+      text.TweenOut(0.25f);
     }
+
+    LeanTween.alpha(scrim, 1f, 0.5f).setOnComplete(() => {
+      background.renderer.material.mainTexture = StoryBackgrounds[StoryIdx];
+      LeanTween.alpha(scrim, 0f, 2f);
+    });
 
     LeanTween.moveX(Camera.main.gameObject, (float) XSpacing * StoryIdx, 1f)
       .setEase(LeanTweenType.easeInOutCirc)
@@ -199,6 +211,8 @@ Debug.Log("prev");
     var card = Instantiate(AttractPrefab) as GameObject;
     cards.Add(card);
     Stories.Add(cards);
+    StoryBackgrounds = new List<Texture2D>();
+    StoryBackgrounds.Add(DefaultStoryBackground);
   }
 
   void LoadStoryFiles() {
@@ -206,10 +220,11 @@ Debug.Log("prev");
     var pos = new Vector3(XSpacing * Stories.Count(), 0, 0);
 
     foreach (var file in StoryFiles) {
-      var storyBackground = DefaultStoryBackground;
       var currentFont = DefaultCardFont;
       var currentFontSize = DefaultCardFontSize;
       var cards = new List<GameObject>();
+      var storyBackground = DefaultStoryBackground;
+      StoryBackgrounds.Add(storyBackground);
       var lines = file.text.Split('\n').ToList();
       lines = lines.Select(line => line.Trim()).Where(line => line.Length > 0).ToList();
 
@@ -224,8 +239,10 @@ Debug.Log("prev");
         }
 
         // Look for background changes.
-        if (Regex.Match(line, @"^<background").Success) {
+        if (Regex.Match(line, @"^<bg").Success) {
           storyBackground = getBackgroundFromLine(line) ?? storyBackground;
+          StoryBackgrounds[StoryBackgrounds.Count()-1] = storyBackground;
+          continue;
         }
 
         var card = Instantiate(CardPrefab) as GameObject;
@@ -284,8 +301,8 @@ Debug.Log("prev");
     return currentFontSize;
   }
 
-  Material getBackgroundFromLine(string line) {
-    Material currentBackground = null;
+  Texture2D getBackgroundFromLine(string line) {
+    Texture2D currentBackground = null;
     var bgPattern = new Regex(@"^<bg (.+?) ?(\d+)?>");
     var bgMatch = bgPattern.Match(line);
     if (bgMatch.Success) {
