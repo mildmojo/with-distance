@@ -109,13 +109,13 @@ public class Rangefinder : MonoBehaviour
 
       // Accumulate all sensor readings, including zeroes.
       rawBuffer.Add(range_us / 58f);
-      if (rawBuffer.Count() > 10) rawBuffer.RemoveAt(0);
+      while (rawBuffer.Count() > 10) rawBuffer.RemoveAt(0);
       raw_cm = rawBuffer.Average();
       last_raw_cm = rawBuffer.Last();
 
       // Accumulate nonzero sensor readings converted to distance, calc average.
       if (range_us > 0) buffer.Add(range_us / 58f);
-      if (buffer.Count() > 10) buffer.RemoveAt(0);
+      while (buffer.Count() > 10) buffer.RemoveAt(0);
       distance_cm = buffer.Average();
     }
 

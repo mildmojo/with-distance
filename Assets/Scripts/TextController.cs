@@ -8,10 +8,13 @@ public class TextController : MonoBehaviour {
 
   private Text textComponent;
   private Color textColor = Color.white;
+  private CanvasGroup canvasGroup;
 
   void Awake () {
     textComponent = GetComponentInChildren<Text>();
     textColor = textComponent.color;
+    canvasGroup = GetComponent<CanvasGroup>();
+    Debug.Log("current alpha: " +canvasGroup.alpha);
   }
 
   void Update () {
@@ -42,31 +45,38 @@ public class TextController : MonoBehaviour {
     textComponent.fontSize = newFontSize;
   }
 
-  public LTDescr TweenIn(float time = 1.8f) {
+  public LTDescr TweenIn(float time = 1f) {
     LeanTween.cancel(gameObject);
-    var tween = LeanTween.value(gameObject,
-                                c => textComponent.color = c,
-                                textComponent.color,
-                                textColor,
-                                time)
-                         .setEase(LeanTweenType.easeOutQuad);
+    var tween = LeanTween.value(gameObject, val => canvasGroup.alpha = val, 0f, 1f, time);
+    // var tween = LeanTween.alpha(canvasGroup, 1f, time)
+    //                      .setEase(LeanTweenType.easeOutQuad);
+    // var tween = LeanTween.value(gameObject,
+    //                             c => textComponent.color = c,
+    //                             textComponent.color,
+    //                             textColor,
+    //                             time)
+    //                      .setEase(LeanTweenType.easeOutQuad);
     return tween;
   }
 
-  public LTDescr TweenOut(float time = 1.8f) {
+  public LTDescr TweenOut(float time = 0.5f) {
     LeanTween.cancel(gameObject);
-    var targetColor = textColor;
-    var darkenBy = Mathf.Min(targetColor.r, targetColor.g, targetColor.b) * 0.9f;
-    targetColor.r -= darkenBy;
-    targetColor.g -= darkenBy;
-    targetColor.b -= darkenBy;
-    targetColor.a = 0;
-    var tween = LeanTween.value(gameObject,
-                                c => textComponent.color = c,
-                                textComponent.color,
-                                targetColor,
-                                time)
-                         .setEase(LeanTweenType.easeOutQuad);
+    var tween = LeanTween.value(gameObject, val => canvasGroup.alpha = val, 1f, 0f, time);
+    // var tween = LeanTween.alpha(canvasGroup, 0f, time)
+    //                      .setEase(LeanTweenType.easeOutQuad);
+
+    // var targetColor = textColor;
+    // var darkenBy = Mathf.Min(targetColor.r, targetColor.g, targetColor.b) * 0.9f;
+    // targetColor.r -= darkenBy;
+    // targetColor.g -= darkenBy;
+    // targetColor.b -= darkenBy;
+    // targetColor.a = 0;
+    // var tween = LeanTween.value(gameObject,
+    //                             c => textComponent.color = c,
+    //                             textComponent.color,
+    //                             targetColor,
+    //                             time)
+    //                      .setEase(LeanTweenType.easeOutQuad);
     return tween;
   }
 
