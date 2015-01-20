@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour {
 
   public GameObject AttractPrefab;
   public GameObject CardPrefab;
-  public GameObject FinalCardPrefab;
   public Texture2D DefaultStoryBackground;
   public Font DefaultCardFont;
   public int DefaultCardFontSize;
@@ -257,11 +256,6 @@ Debug.Log("prev");
         Debug.Log("card added");
         pos += new Vector3(0, 0, -ZSpacing);
       }
-
-      // Don't add card to story stack; it'll affect sensor distances.
-      var finalCard = Instantiate(FinalCardPrefab) as GameObject;
-      finalCard.transform.position = pos;
-      // cards.Add(finalCard);
 
       Stories.Add(cards);
       StoryDeck.Add(Stories.Count() - 1);

@@ -8,7 +8,6 @@ public class CameraController : MonoBehaviour {
   private Vector3 cameraPos;
   private Rangefinder rangefinder;
   private GameManager gameManager;
-  private float finalCardTime;
 
   void Start () {
     cameraPos = Camera.main.transform.position;
