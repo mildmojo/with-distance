@@ -2,11 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.IO.Ports;
 
 public class Rangefinder : MonoBehaviour
 {
     public static Rangefinder Instance;
+
+    public string SerialConfigFile = "serial.conf";
 
     [System.NonSerialized]
     public float distance_cm;
@@ -22,13 +25,15 @@ public class Rangefinder : MonoBehaviour
     [System.NonSerialized]
     public bool IsActive;
 
-    private SerialPort sp = new SerialPort("COM4", 9600);
+    private string serialDeviceName;
+    private SerialPort sp;
     private List<float> buffer;
     private List<float> rawBuffer;
 
     private GameManager gameManager;
 
     public void Reset() {
+      if (!gameManager) return;
       idleTime = 0f;
       // Game starts in attract mode where sensor sweep should be empty and
       // sensor value should be maxed out.
@@ -39,6 +44,8 @@ public class Rangefinder : MonoBehaviour
 
     void Awake() {
       Instance = this;
+      LoadSerialConfig();
+      sp = new SerialPort(serialDeviceName ?? "COM4", 57600);
     }
 
     void Start() {
@@ -82,6 +89,7 @@ public class Rangefinder : MonoBehaviour
     IEnumerator Connect() {
       while (!sp.IsOpen) {
         try {
+          Debug.Log("Opening port '" + sp.PortName + "'...");
           sp.Open();
           sp.ReadTimeout = 1;
         } catch (System.Exception e) {
@@ -90,6 +98,21 @@ public class Rangefinder : MonoBehaviour
 
         yield return new WaitForSeconds(2);
       }
+    }
+
+    void LoadSerialConfig() {
+      StreamReader sr;
+      try {
+        sr = new StreamReader(Application.dataPath + "/" + SerialConfigFile);
+      } catch {
+        Debug.Log("Couldn't open " + Application.dataPath + "/" + SerialConfigFile);
+        serialDeviceName = "COM4";
+        return;
+      }
+      var fileContents = sr.ReadToEnd();
+      sr.Close();
+      var lines = fileContents.Split("\n"[0]);
+      serialDeviceName = lines.First().Trim();
     }
 
     void ReadSerialData() {
