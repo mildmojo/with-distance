@@ -54,32 +54,51 @@ public class CameraController : MonoBehaviour {
   }
 
   void OnTriggerEnter(Collider c) {
+    // Don't trigger old story card colliders on the way to a new story.
+    if (IsOutsideStoryBounds()) return;
     if (c.tag == "AttractCard") return;
-    if (c.tag == "FinalCard") return;
-
-    // Don't trigger if we're moving toward a new story.
-    var cameraX = transform.position.x;
-    var storyX = gameManager.XSpacing * gameManager.StoryIdx;
-    var acceptableDiff = gameManager.XSpacing / 2f;
-    if (Mathf.Abs(cameraX - storyX) > acceptableDiff) return;
 
     var card = c.gameObject;
     var cardIdx = card.GetComponent<TextController>().index;
-    if (c.bounds.center.z < collider.bounds.center.z) {
-      // Front edge of collider, move to the back (-z).
+
+    if (IsInFrontOfCamera(c)) {
+      // Card is in front of camera, select next-lower index.
+      Debug.Log("goto card " + (cardIdx - 1));
+      gameManager.SelectCard(cardIdx - 1);
+    } else {
+      // Card is behind camera, select it.
+      Debug.Log("goto card " + cardIdx);
+      gameManager.SelectCard(cardIdx);
+    }
+  }
+
+  void OnTriggerExit(Collider c) {
+    // Don't trigger old story card colliders on the way to a new story.
+    if (IsOutsideStoryBounds()) return;
+    if (c.tag == "AttractCard") return;
+
+    var card = c.gameObject;
+    var cardIdx = card.GetComponent<TextController>().index;
+
+    if (IsInFrontOfCamera(c)) {
+      // Card is in front of camera, select it.
+      Debug.Log("goto card " + cardIdx);
       gameManager.SelectCard(cardIdx);
     } else {
-      // Back edge of the collider, move to the front (+z).
+      // Card is behind camera, select next-lower index.
+      Debug.Log("goto card " + (cardIdx - 1));
       gameManager.SelectCard(cardIdx - 1);
     }
   }
 
-  void OnTriggerStay(Collider c) {
-    // Accumulate time spent in final card's trigger zone.
-    if (c.tag == "FinalCard") finalCardTime += Time.deltaTime;
+  bool IsOutsideStoryBounds() {
+    var acceptableDiff = gameManager.XSpacing / 2f;
+    var cameraX = transform.position.x;
+    var storyX = gameManager.XSpacing * gameManager.StoryIdx;
+    return Mathf.Abs(cameraX - storyX) > acceptableDiff;
   }
 
-  void OnTriggerExit(Collider c) {
-    if (c.tag == "FinalCard") finalCardTime = 0f;
+  bool IsInFrontOfCamera(Collider c) {
+    return c.bounds.center.z > collider.bounds.center.z;
   }
 }
