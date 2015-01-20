@@ -230,6 +230,7 @@ Debug.Log("prev");
 
       for (var i = 0; i < lines.Count(); i++) {
         var line = lines[i];
+        line = line.Replace("\\n", "\n");
 
         // Look for font changes.
         if (Regex.Match(line, @"^<font").Success) {
