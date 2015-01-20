@@ -95,8 +95,8 @@ public class GameManager : MonoBehaviour {
     if (AttractMode) return;
 
     // Show timeout dots for inactivity.
-    var dotTime = idleTime - IdleTimeout * 0.4;
     var dotTotalTime = IdleTimeout * 0.5;
+    var dotTime = idleTime - dotTotalTime;
     for (var i = 0; i < TimerDots.Count(); i++) {
       // If time has passed this dot's interval, activate it.
       var isActive = dotTime > (dotTotalTime / TimerDots.Count()) * i;
@@ -200,8 +200,9 @@ Debug.Log("prev");
     CardIdx = newCardIdx;
     CardIdx = Mathf.Clamp(CardIdx, 0, Stories[StoryIdx].Count() - 1);
     if (CardIdx != oldCardIdx) {
-      Debug.Log("cardchange prev!");
+      Debug.Log("cardchange!");
       SendMessage("CardChange", new int[]{oldCardIdx, CardIdx});
+      LeanTween.alpha(scrim, (float) CardIdx / Cards.Count() * 0.6f, 1f);
     }
   }
 
