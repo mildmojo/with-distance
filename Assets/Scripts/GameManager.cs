@@ -83,6 +83,7 @@ public class GameManager : MonoBehaviour {
   void Update () {
     CheckAttractModeTimeout();
     CheckDebugMode();
+    CheckQuit();
   }
 
   void CheckAttractModeTimeout() {
@@ -150,6 +151,12 @@ public class GameManager : MonoBehaviour {
 
     if (rangefinder.last_raw_cm > 0) {
       statusText.text += "\n(hit " + Mathf.Round(rangefinder.last_raw_cm) + ")";
+    }
+  }
+
+  void CheckQuit() {
+    if (Input.GetKeyDown(KeyCode.Escape)) {
+      Application.Quit();
     }
   }
 
