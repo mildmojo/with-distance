@@ -3,10 +3,10 @@
 I woke up in the hospital. My thumbs hurt. I think they were hooked into the steering wheel. I don't remember what happened. Where's Dani?
 <font DawningofaNewDay>
 The police called, and I... she's at Niagara Memorial. Dani was in an accident and she's unconscious. I don't know. We have to leave. Now.
-<font Oswald-Regular 64>
-14-VEHICLE PILEUP ON NEW YORK HIGHWAY\nBUFFALO (AP) -- 19 motorists have been hospitalized after a 14-vehicle crash caused by early morning icing and low visibility on Interstate 90, authorities said Monday.
 <font ReenieBeanie 88>
 Hey, Dani and Soraya were supposed to get home this morning, right? Did she text you? I just saw a thing about an accident in Buffalo. Are they okay?
+<font Oswald-Regular 64>
+BREAKING: 14-VEHICLE PILEUP ON NEW YORK HIGHWAY\nBUFFALO (Reuters) -- 19 motorists have been hospitalized after a 14-vehicle crash caused by early morning icing and low visibility on Interstate 90, authorities said Monday.
 <font Karma-Regular 88>
 @FranziDotes 5m\nSTAY OFF 90W this AM. Massive pileup at exit 49 due to ice & fog. Google says 45-min delay.
 <font RockSalt 64>
